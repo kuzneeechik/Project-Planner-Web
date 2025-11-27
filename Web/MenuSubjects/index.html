@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учебные предметы</title>
+    <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+    <header>
+        <h1 class="text-button" id="nameSubjectButton">Предметы</h1>
+        <h3 class="text-button profile-button">Профиль</h3>
+    </header>
+
+    <div class="container" id="subjectsContainer">
+    </div>
+
+    <button class="add-button" id="addButton">+</button>
+
+    <div class="modal" id="subjectModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2>Новый предмет</h2>
+            <form id="subjectForm">
+                <label for="subjectName">Название предмета:</label>
+                <input type="text" id="subjectName" required>
+
+                <label for="subjectResult">Результат:</label>
+                <textarea id="subjectResult" rows="1" required></textarea>
+
+                <label for="subjectDescription">Описание:</label>
+                <textarea id="subjectDescription" rows="2"></textarea>
+
+                <label for="subjectDeadline">Дедлайн:</label>
+                <input type="date" id="subjectDeadline">
+
+                <button type="submit">Создать</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="menu.js"></script>
+</body>
+</html>
