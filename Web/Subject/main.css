@@ -1,0 +1,425 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #a2a2a2;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #dedede;
+    border-bottom: 2px solid #333;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 12px;
+}
+
+.back-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.text-button {
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+}
+
+.team-button {
+    font-size: 14px;
+    font-weight: normal;
+    margin-left: auto;
+}
+
+.columns-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    margin-top: 10px;
+}
+
+.column {
+    flex: 1;
+    border: 1px solid #ccc;
+    background-color: #dedede;
+    border-radius: 4px; 
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 150px);
+}
+
+.column-header {
+    padding: 10px;
+    background-color: #fff;
+    border-bottom: 1px solid #333;
+    text-align: center;
+}
+
+.column-header h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
+}
+
+.column-body {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.task {
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: grab;
+}
+
+.task:active {
+    cursor: grabbing;
+}
+
+.pastel-blue { background-color: #cce5ff; }
+.pastel-orange { background-color: #ffe0b2; }
+.pastel-pink { background-color: #f8bbd9; }
+.pastel-green { background-color: #c8e6c9; }
+.pastel-yellow { background-color: #fff9c4; }
+.pastel-purple { background-color: #e1bee7; }
+.pastel-red { background-color: #ffcdd2; }
+.pastel-teal { background-color: #b2ebf2; }
+.pastel-lime { background-color: #e6ee9c; }
+.pastel-indigo { background-color: #d1c4e9; }
+
+.add-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    border: none;
+    background-color: #333;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+}
+
+.task-modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 350px;
+    max-width: 90%;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.task-modal .modal-content .close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.task-modal .modal-content .close:hover {
+    color: #333;
+}
+
+.task-modal .modal-content h2 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+}
+
+.task-modal .modal-content label {
+    display: block;
+    margin: 12px 0 4px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.task-modal .modal-content input,
+.task-modal .modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.task-modal .modal-content textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.task-modal .create-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+}
+
+.task-modal .create-button:hover {
+    background-color: #555;
+}
+
+.task-modal .checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0 15px 0;
+    max-height: 100px;
+    overflow-y: auto;
+    padding: 6px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.task-modal .checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #333;
+    padding: 4px 6px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.task-modal .checkbox-list input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+}
+
+.subject-modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 350px;
+    max-width: 90%;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.subject-modal .modal-content .close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.subject-modal .modal-content .close:hover {
+    color: #333;
+}
+
+.subject-modal .modal-content h2 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+}
+
+.subject-modal .modal-content label {
+    display: block;
+    margin: 12px 0 4px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.subject-modal .modal-content input,
+.subject-modal .modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.subject-modal .modal-content textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.edit-modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.edit-modal-buttons button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    width: 48%;
+}
+
+#deleteSubjectBtn {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+#editSubjectForm button[type="submit"] {
+    background-color: #333;
+    color: white;
+}
+
+#teamModal .sidebar-content {
+    position: fixed;
+    top: 0;
+    right: 0; 
+    width: 280px;
+    height: 100vh;
+    background-color: #dedede;
+    color: rgb(0, 0, 0);
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-header h1 {
+    font-size: 20px;
+    margin: 0;
+}
+
+.team-list input::placeholder {
+    color: #aaa;
+}
+
+.buttonInvite,
+.buttonDelete {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0; 
+}
+
+.buttonInvite {
+    background-color: #333;
+    color: white;
+}
+
+.buttonDelete {
+    background-color: #333;
+    color: white;
+    margin-top: 10px;
+}
+
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+    position: relative;
+}
+
+.sidebar-header .close {
+    position: absolute;
+    right: 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.team-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    font-family: inherit;
+}
+
