@@ -45,11 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
-    if (!isValidPassword(password)) {
-      showError('Пароль должен содержать минимум 8 символов, буквы и цифры.');
-      return;
-    }
-
     try {
       const res = await fetch(`${API_BASE}/student/login`, {
         method: 'POST',
@@ -61,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.ok) {
         localStorage.setItem('authToken', data.accessToken);
-        window.location.href = '..';
+        window.location.href = '../MenuSubjects/index.html';
       } else {
         const errorMsg = data.message || 'Неверный email или пароль.';
         showError(errorMsg);
