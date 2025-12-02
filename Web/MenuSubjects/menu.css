@@ -254,3 +254,15 @@ input[type="date"] {
   cursor: pointer;
   font-weight: normal;
 }
+
+.menu-btn {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}

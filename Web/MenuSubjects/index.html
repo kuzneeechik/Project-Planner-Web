@@ -17,6 +17,14 @@
 
     <button class="add-button" id="addButton">+</button>
 
+    <div class="modal" id="actionMenuModal">
+        <div class="modal-content" style="width: 250px; text-align: center;">
+            <h2>Выберите действие</h2>
+            <button id="createSubjectBtn" class="menu-btn">Создать предмет</button>
+            <button id="joinByCodeBtn" class="menu-btn">Присоединиться по коду</button>
+        </div>
+    </div>
+
     <div class="modal" id="subjectModal">
         <div class="modal-content">
             <span class="close-btn" id="closeModal">&times;</span>
@@ -45,6 +53,18 @@
             <span class="close" id="closeProfileModal">&times;</span>
             <p><strong>ФИО:</strong> <span id="profileName">—</span></p>
             <button id="logoutButton" class="logout-btn">Выйти</button>
+        </div>
+    </div>
+
+    <div class="modal" id="entryCodeModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeEntryCodeModal">&times;</span>
+            <h2>Вход по коду</h2>
+            <form id="entryCodeForm">
+            <label for="entryCode">Код предмета:</label>
+            <input type="text" id="entryCode" placeholder="Введите код">
+            <button type="submit">Присоединиться</button>
+            </form>
         </div>
     </div>
     <script src="menu.js"></script>

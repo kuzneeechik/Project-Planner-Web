@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const subjectResult = document.getElementById('subjectResult');
   const subjectDeadline = document.getElementById('subjectDeadline');
 
+  const actionMenuModal = document.getElementById('actionMenuModal');
+  const createSubjectBtn = document.getElementById('createSubjectBtn');
+  const joinByCodeBtn = document.getElementById('joinByCodeBtn');
+  const entryCodeModal = document.getElementById('entryCodeModal');
+  const closeEntryCodeModal = document.getElementById('closeEntryCodeModal');
+  const entryCodeForm = document.getElementById('entryCodeForm');
+
   function formatDate(dateString) {
     if (!dateString) return '—';
     const date = new Date(dateString);
@@ -73,15 +80,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   addButton.addEventListener('click', () => {
+    actionMenuModal.style.display = 'block';
+  });
+
+  createSubjectBtn.addEventListener('click', () => {
+    actionMenuModal.style.display = 'none';
     modal.style.display = 'block';
+  });
+
+  joinByCodeBtn.addEventListener('click', () => {
+    actionMenuModal.style.display = 'none';
+    entryCodeModal.style.display = 'block';
   });
 
   closeModal.addEventListener('click', () => {
     modal.style.display = 'none';
   });
 
+  closeEntryCodeModal.addEventListener('click', () => {
+    entryCodeModal.style.display = 'none';
+  });
+
   window.addEventListener('click', (e) => {
+    if (e.target === actionMenuModal) actionMenuModal.style.display = 'none';
     if (e.target === modal) modal.style.display = 'none';
+    if (e.target === entryCodeModal) entryCodeModal.style.display = 'none';
   });
 
   // создание
@@ -91,18 +114,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = subjectName.value.trim();
     const description = subjectDescription.value.trim();
     const result = subjectResult.value.trim();
-    const deadlineInput = subjectDeadline.value;
+    const deadlineInput = subjectDeadline.value; 
 
     if (!name || !result) {
       alert('Заполните название и результат!');
       return;
     }
 
+    if (deadlineInput) {
+      const localDate = new Date(deadlineInput);
+      if (isNaN(localDate.getTime())) {
+        alert('Некорректная дата дедлайна.');
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(localDate);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        alert('Дедлайн не может быть в прошлом.');
+        return;
+      }
+    }
+
     let resultDeadline = null;
     if (deadlineInput) {
       const localDate = new Date(deadlineInput);
-      const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
-      resultDeadline = utcDate.toISOString(); 
+      const utcDate = new Date(Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
+      ));
+      resultDeadline = utcDate.toISOString();
     }
 
     try {
@@ -135,8 +180,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  loadSubjects();
+  // по коду
+  if (entryCodeForm) {
+    entryCodeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = document.getElementById('entryCode').value.trim();
 
+      if (!code) {
+        alert('Введите код предмета');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/team/entry`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ code })
+        });
+
+        if (res.ok) {
+          alert('Вы присоединились к предмету!');
+          entryCodeModal.style.display = 'none';
+          document.getElementById('entryCode').value = '';
+          loadSubjects();
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          alert(errorData.message || 'Неверный код предмета');
+        }
+      } catch (err) {
+        console.error('Ошибка сети:', err);
+        alert('Не удаётся подключиться к серверу');
+      }
+    });
+  }
+
+  // профиль
   const profileButton = document.querySelector('.profile-button');
   const profileModal = document.getElementById('profileModal');
   const profileName = document.getElementById('profileName');
@@ -169,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     profileModal.classList.add('show');
   });
 
- logoutButton.addEventListener('click', () => {
+  logoutButton.addEventListener('click', () => {
     if (confirm('Вы уверены, что хотите выйти?')) {
       localStorage.removeItem('authToken');
       window.location.href = '../Login/login.html';
@@ -185,4 +266,5 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 300); 
     });
   }
+  loadSubjects();
 });
