@@ -136,4 +136,53 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   loadSubjects();
+
+  const profileButton = document.querySelector('.profile-button');
+  const profileModal = document.getElementById('profileModal');
+  const profileName = document.getElementById('profileName');
+  const logoutButton = document.getElementById('logoutButton');
+
+  async function loadProfile() {
+    try {
+      const res = await fetch(`${API_BASE}/student/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        const profile = await res.json();
+        profileName.textContent = profile.name || '—';
+      } else {
+        profileName.textContent = 'Не удалось загрузить';
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки профиля:', err);
+      profileName.textContent = 'Ошибка подключения';
+    }
+  }
+
+  profileButton.addEventListener('click', () => {
+    loadProfile();
+    profileModal.style.display = 'block';
+    profileModal.classList.add('show');
+  });
+
+ logoutButton.addEventListener('click', () => {
+    if (confirm('Вы уверены, что хотите выйти?')) {
+      localStorage.removeItem('authToken');
+      window.location.href = '../Login/login.html';
+    }
+  });
+
+  const closeProfileModal = document.getElementById('closeProfileModal');
+  if (closeProfileModal && profileModal) {
+    closeProfileModal.addEventListener('click', () => {
+      profileModal.classList.remove('show');
+      setTimeout(() => {
+        profileModal.style.display = 'none';
+      }, 300); 
+    });
+  }
 });
