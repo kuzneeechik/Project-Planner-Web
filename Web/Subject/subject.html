@@ -58,8 +58,8 @@
 
             <div class="team-list" id="teamList">
             </div>
-            <button class="buttonInvite">пригласить</button>
-            <button class="buttonDelete">удалить</button>
+            <button class="buttonInvite" id="showInviteBtn">пригласить</button>
+            <button class="buttonDelete" id="showDeleteBtn">удалить</button>
         </div>
     </div>
 
@@ -106,6 +106,23 @@
                     <button type="submit">Сохранить</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="inviteCodeModal" class="modal-overlay">
+        <div class="modal-content invite-modal">
+            <h2>Код предмета:</h2>
+            <input type="text" id="inviteCode" readonly>
+            <button id="closeInviteModal" class="team-modal-button">закрыть</button>
+        </div>
+    </div>
+
+    <div id="deleteStudentsModal" class="modal-overlay">
+        <div class="modal-content delete-students-modal">
+            <h2>Удалить студентов</h2>
+            <div id="deleteCheckboxList" class="checkbox-list"></div>
+            <button id="confirmDelete" class="team-modal-button">удалить</button>
+            <button id="closeDeleteModal" class="team-modal-button">отмена</button>
         </div>
     </div>
 </body>

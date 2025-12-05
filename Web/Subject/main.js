@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const API_BASE = 'https://localhost:7109';
+    const token = localStorage.getItem('authToken');
+
+    if (!token) {
+        alert('Пожалуйста, войдите в систему.');
+        window.location.href = '../Login/login.html';
+        return;
+    }
     const nameSubjectButton = document.getElementById('nameSubjectButton');
     const createdColumn = document.getElementById('createdColumn');
     const processColumn = document.getElementById('processColumn');
@@ -20,50 +28,382 @@ document.addEventListener('DOMContentLoaded', () => {
     const editSubjectDeadline = document.getElementById('editSubjectDeadline');
     const deleteSubjectBtn = document.getElementById('deleteSubjectBtn');
 
-    function getRandomColor(currentTasks) {
-        const colors = [
-            'pastel-blue',
-            'pastel-orange',
-            'pastel-pink',
-            'pastel-green',
-            'pastel-yellow',
-            'pastel-purple',
-            'pastel-red',
-            'pastel-teal',
-            'pastel-lime',
-            'pastel-indigo'
-        ];
-        const usedColors = currentTasks.map(task => task.color);
-        const availableColors = colors.filter(color => !usedColors.includes(color));
-        if (availableColors.length > 0) {
-            return availableColors[Math.floor(Math.random() * availableColors.length)];
+    let subjectId = null;
+    let currentSubject = null;
+    let currentTasks = [];
+    let currentTeam = [];
+
+    function getColorById(taskId) {
+      const colors = [
+        'pastel-blue', 'pastel-orange', 'pastel-pink', 'pastel-green',
+        'pastel-yellow', 'pastel-purple', 'pastel-red', 'pastel-teal',
+        'pastel-lime', 'pastel-indigo'
+      ];
+      let hash = 0;
+      for (let i = 0; i < taskId.length; i++) {
+        hash = taskId.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const index = Math.abs(hash) % colors.length;
+      return colors[index];
+    }
+
+    async function loadSubjectAndTasks() {
+      try {
+        const subjectRes = await fetch(`${API_BASE}/subject/${subjectId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (subjectRes.status === 401) {
+          localStorage.removeItem('authToken');
+          alert('Сессия истекла. Пожалуйста, войдите снова.');
+          window.location.href = '../Login/login.html';
+          return;
         }
-        return colors[Math.floor(Math.random() * colors.length)];
+        if (!subjectRes.ok) throw new Error('Не удалось загрузить предмет');
+        currentSubject = await subjectRes.json();
+
+        const tasksRes = await fetch(`${API_BASE}/task/tasks/${subjectId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!tasksRes.ok) throw new Error('Не удалось загрузить задачи');
+        currentTasks = await tasksRes.json();
+
+        const teamRes = await fetch(`${API_BASE}/team/${subjectId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!teamRes.ok) throw new Error('Не удалось загрузить команду');
+        currentTeam = await teamRes.json();
+
+        renderSubjectData();
+      } catch (err) {
+        console.error('Ошибка загрузки:', err);
+        alert('Не удалось загрузить данные предмета.');
+        window.location.href = '../MenuSubjects/index.html';
+      }
     }
 
-    const stored = localStorage.getItem('subjects');
-    let subjects = stored ? JSON.parse(stored) : [];
-
-    const mathSubject = subjects.find(s => s.name === 'Математика');
-    if (mathSubject && (!mathSubject.team || mathSubject.team.length === 0)) {
-        mathSubject.team = ['Иванов И.И.', 'Петров П.П.', 'Сидорова С.С.'];
-        localStorage.setItem('subjects', JSON.stringify(subjects));
+    function renderSubjectData() {
+      nameSubjectButton.textContent = currentSubject.name;
+      renderTasks();
+      renderTeam();
     }
 
-    const subjectsData = {};
-    subjects.forEach(s => {
-        subjectsData[s.id] = {
-            name: s.name,
-            description: s.description || '',
-            result: s.result || '',
-            deadline: s.deadline || '',
-            tasks: s.tasks || [],
-            team: s.team || []
-        };
+    function renderTasks() {
+      createdColumn.innerHTML = '';
+      processColumn.innerHTML = '';
+      doneColumn.innerHTML = '';
+
+      const statusMap = {
+        'Created': 'created',
+        'InProcess': 'process',
+        'Done': 'done'
+    };
+
+    currentTasks.forEach(task => {
+      const displayStatus = statusMap[task.status] || 'created';
+      const taskElement = document.createElement('div');
+      taskElement.className = `task ${getColorById(task.id)}`;
+      taskElement.draggable = true;
+      taskElement.dataset.taskId = task.id;
+      taskElement.dataset.status = displayStatus;
+      taskElement.textContent = `${task.number}. ${task.name}`;
+      taskElement.ondragstart = dragStart;
+      taskElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `task.html?subjectId=${subjectId}&taskId=${task.id}`;
+      });
+
+      if (displayStatus === 'created') {
+        createdColumn.appendChild(taskElement);
+      } else if (displayStatus === 'process') {
+        processColumn.appendChild(taskElement);
+      } else if (displayStatus === 'done') {
+        doneColumn.appendChild(taskElement);
+      }
+    });
+  }
+
+    function renderTeam() {
+      teamList.innerHTML = '';
+      currentTeam.forEach(member => {
+        const div = document.createElement('div');
+        div.className = 'team-member';
+        div.textContent = member.name;
+        teamList.appendChild(div);
+      });
+    }
+
+    let draggedTask = null;
+    function dragStart(e) {
+      draggedTask = e.target;
+      e.dataTransfer.effectAllowed = 'move';
+      e.target.classList.add('dragging');
+    }
+
+    document.querySelectorAll('.column-body').forEach(body => {
+      body.addEventListener('dragover', e => e.preventDefault());
+      body.addEventListener('dragenter', e => {
+        e.preventDefault();
+        body.classList.add('drag-over');
+      });
+      body.addEventListener('dragleave', () => {
+        body.classList.remove('drag-over');
+      });
+      body.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        body.classList.remove('drag-over');
+        if (!draggedTask) return;
+
+        const newStatus = body === createdColumn ? 'created' : body === processColumn ? 'process' : 'done';
+        const taskId = draggedTask.dataset.taskId;
+
+        if (draggedTask.dataset.status === newStatus) {
+          draggedTask = null;
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/task/status/${taskId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+
+          if (!res.ok) throw new Error('Не удалось обновить статус');
+
+          draggedTask.dataset.status = newStatus;
+          body.appendChild(draggedTask);
+
+          const task = currentTasks.find(t => t.id === taskId);
+          if (task) task.status = newStatus;
+
+        } catch (err) {
+          console.error(err);
+          alert('Не удалось изменить статус задачи.');
+        }
+
+        draggedTask = null;
+      });
+    });
+
+    backButton.addEventListener('click', () => {
+      window.location.href = '../MenuSubjects/index.html';
+    });
+
+    teamButton.addEventListener('click', () => {
+      teamModal.style.display = 'block';
+    });
+
+    nameSubjectButton.addEventListener('click', () => {
+      editModalTitle.textContent = currentSubject.name;
+      editSubjectName.value = currentSubject.name;
+      editSubjectDescription.value = currentSubject.resultDescription || '';
+      editSubjectResult.value = currentSubject.result || '';
+      editSubjectDeadline.value = currentSubject.resultDeadline ? 
+        new Date(currentSubject.resultDeadline).toISOString().split('T')[0] : '';
+      editSubjectModal.style.display = 'block';
+    });
+
+    closeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        teamModal.style.display = 'none';
+        taskModal.style.display = 'none';
+      });
+    });
+
+    closeEditSubjectModal.addEventListener('click', () => {
+      editSubjectModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === teamModal) teamModal.style.display = 'none';
+      if (e.target === taskModal) taskModal.style.display = 'none';
+      if (e.target === editSubjectModal) editSubjectModal.style.display = 'none';
+    });
+
+    addTaskButton.addEventListener('click', () => {
+      const assigneesList = document.getElementById('assigneesList');
+      assigneesList.innerHTML = '';
+      currentTeam.forEach(member => {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = member.id;
+        label.append(checkbox, document.createTextNode(member.name));
+        assigneesList.appendChild(label);
+      });
+      taskModal.style.display = 'block';
+    });
+
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('taskName').value.trim();
+        if (!name) {
+            alert('Введите название задачи');
+            return;
+        }
+
+        const description = document.getElementById('taskDescription').value.trim();
+        const deadlineInput = document.getElementById('taskDeadline').value;
+
+        if (deadlineInput) {
+            const d = new Date(deadlineInput);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (d < today) {
+                alert('Дедлайн не может быть в прошлом!');
+                return;
+            }
+        }
+
+        const checked = document.querySelectorAll('#assigneesList input[type="checkbox"]:checked');
+        const assignees = Array.from(checked).map(cb => cb.value);
+
+        const topLevelNumbers = currentTasks
+        .map(t => t.number)
+        .filter(num => /^\d+$/.test(num)) 
+        .map(num => parseInt(num, 10))
+        .filter(n => !isNaN(n));
+
+        const nextNumber = topLevelNumbers.length 
+        ? Math.max(...topLevelNumbers) + 1 : 1;
+
+        const taskNumber = nextNumber.toString();
+
+        let taskDeadline = null;
+        if (deadlineInput) {
+            const localDate = new Date(deadlineInput);
+            taskDeadline = new Date(Date.UTC(
+                localDate.getFullYear(),
+                localDate.getMonth(),
+                localDate.getDate()
+            )).toISOString();
+        }
+
+        try {
+            const taskData = {
+                number: taskNumber, 
+                name,
+                description,
+                deadline: taskDeadline,
+                responsibleStudents: assignees
+            };
+
+            const res = await fetch(`${API_BASE}/task/create/${subjectId}`, {
+                method: 'POST',
+                headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(taskData)
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text().catch(() => 'Неизвестная ошибка');
+                console.error('Ошибка бэкенда:', errorText);
+                throw new Error('Не удалось создать задачу');
+            }
+
+            taskModal.style.display = 'none';
+            document.getElementById('taskForm').reset();
+            loadSubjectAndTasks();
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при создании задачи: ' + err.message);
+        }
+    });
+
+    editSubjectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = editSubjectName.value.trim();
+        const description = editSubjectDescription.value.trim();
+        const result = editSubjectResult.value.trim();
+        const deadlineInput = editSubjectDeadline.value;
+
+        if (!name || !result) {
+            alert('Заполните название и результат!');
+            return;
+        }
+
+        let resultDeadline = null;
+        if (deadlineInput) {
+            const localDate = new Date(deadlineInput);
+            if (isNaN(localDate.getTime())) {
+                alert('Некорректная дата дедлайна.');
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const selectedDate = new Date(localDate);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                alert('Дедлайн не может быть в прошлом.');
+                return;
+            }
+
+            resultDeadline = new Date(Date.UTC(
+                localDate.getFullYear(),
+                localDate.getMonth(),
+                localDate.getDate()
+            )).toISOString();
+        }
+
+        try {
+            const updateData = {
+                name,
+                result,
+                resultDescription: description,
+                resultDeadline
+            };
+
+            const res = await fetch(`${API_BASE}/subject/update/${subjectId}`, {
+                method: 'PUT',
+                headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('Ошибка сервера:', errorText);
+                throw new Error('Не удалось обновить предмет');
+            }
+
+            editSubjectModal.style.display = 'none';
+            loadSubjectAndTasks();
+
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при обновлении предмета: ' + err.message);
+        }
+    });
+
+    deleteSubjectBtn.addEventListener('click', async () => {
+        if (!confirm('Удалить предмет и все задачи? Это действие нельзя отменить.')) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/subject/delete/${subjectId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error('Не удалось удалить предмет');
+
+            window.location.href = '../MenuSubjects/index.html';
+
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при удалении предмета');
+        }
     });
 
     const urlParams = new URLSearchParams(window.location.search);
-    const subjectId = urlParams.get('id');
+    subjectId = urlParams.get('id');
 
     if (!subjectId) {
         alert('Не указан ID предмета');
@@ -71,261 +411,73 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const subject = subjectsData[subjectId];
-    if (!subject) {
-        alert('Предмет не найден');
-        window.location.href = '../MenuSubjects/index.html';
-        return;
-    }
+    const showInviteBtn = document.getElementById('showInviteBtn');
+    const showDeleteBtn = document.getElementById('showDeleteBtn');
+    const inviteCodeModal = document.getElementById('inviteCodeModal');
+    const inviteCodeInput = document.getElementById('inviteCode');
+    const closeInviteModal = document.getElementById('closeInviteModal');
+    const deleteStudentsModal = document.getElementById('deleteStudentsModal');
+    const deleteCheckboxList = document.getElementById('deleteCheckboxList');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const closeDeleteModal = document.getElementById('closeDeleteModal');
 
-    function renderSubjectData() {
-        nameSubjectButton.textContent = subject.name;
-
-        createdColumn.innerHTML = '';
-        processColumn.innerHTML = '';
-        doneColumn.innerHTML = '';
-
-        subject.tasks.forEach(task => {
-            const taskElement = document.createElement('div');
-            taskElement.className = `task ${task.color}`;
-            taskElement.draggable = true;
-            taskElement.ondragstart = dragStart;
-            taskElement.addEventListener('click', (e) => {
-                e.stopPropagation();
-                window.location.href = `task.html?subjectId=${subjectId}&taskId=${task.id}`;
-            });
-            taskElement.textContent = `${task.id}. ${task.name}`;
-            taskElement.dataset.taskId = task.id;
-            taskElement.dataset.status = task.status;
-
-            if (task.status === 'created') {
-                createdColumn.appendChild(taskElement);
-            } else if (task.status === 'process') {
-                processColumn.appendChild(taskElement);
-            } else if (task.status === 'done') {
-                doneColumn.appendChild(taskElement);
-            }
-        });
-
-        teamList.innerHTML = '';
-        subject.team.forEach(member => {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = 'ФИО';
-            input.className = 'team-input';
-            input.value = member;
-            input.readOnly = true;
-            teamList.appendChild(input);
-        });
-    }
-
-    let draggedTask = null;
-
-    function dragStart(e) {
-        draggedTask = e.target;
-        e.dataTransfer.effectAllowed = 'move';
-        setTimeout(() => e.target.classList.add('dragging'), 0);
-    }
-
-    document.querySelectorAll('.column-body').forEach(body => {
-        body.addEventListener('dragover', e => e.preventDefault());
-        body.addEventListener('dragenter', e => {
-            e.preventDefault();
-            body.style.backgroundColor = '#eef';
-        });
-        body.addEventListener('dragleave', () => {
-            body.style.backgroundColor = 'transparent';
-        });
-        body.addEventListener('drop', e => {
-            e.preventDefault();
-            if (draggedTask && !body.contains(draggedTask)) {
-                body.appendChild(draggedTask);
-                const newStatus = body === createdColumn ? 'created' :
-                                  body === processColumn ? 'process' : 'done';
-                draggedTask.dataset.status = newStatus;
-
-                const taskId = draggedTask.dataset.taskId;
-                const task = subject.tasks.find(t => t.id === taskId);
-                if (task) {
-                    task.status = newStatus;
-                    const storedSubjects = JSON.parse(localStorage.getItem('subjects')) || [];
-                    const updatedSubjects = storedSubjects.map(s =>
-                        s.id === subjectId ? { ...s, tasks: subject.tasks } : s
-                    );
-                    localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
-                    subjectsData[subjectId] = {
-                        ...subject,
-                        tasks: [...subject.tasks]
-                    };
-                }
-            }
-            body.style.backgroundColor = 'transparent';
-            draggedTask = null;
-        });
-    });
-
-    teamButton.addEventListener('click', () => teamModal.style.display = 'block');
-    backButton.addEventListener('click', () => window.location.href = '../MenuSubjects/index.html');
-    nameSubjectButton.addEventListener('click', () => {
-        const current = subjectsData[subjectId];
-        if (current) {
-            editModalTitle.textContent = current.name;
-            editSubjectName.value = current.name;
-            editSubjectDescription.value = current.description;
-            editSubjectResult.value = current.result;
-            editSubjectDeadline.value = current.deadline;
-            editSubjectModal.style.display = 'block';
-        }
-    });
-
-    closeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            teamModal.style.display = 'none';
-            taskModal.style.display = 'none';
-        });
-    });
-
-    window.addEventListener('click', (e) => {
-        if (e.target === teamModal) teamModal.style.display = 'none';
-        if (e.target === taskModal) taskModal.style.display = 'none';
-        if (e.target === editSubjectModal) editSubjectModal.style.display = 'none';
-    });
-
-    closeEditSubjectModal.addEventListener('click', () => editSubjectModal.style.display = 'none');
-
-    addTaskButton.addEventListener('click', () => {
-        const assigneesList = document.getElementById('assigneesList');
-        assigneesList.innerHTML = '';
-        subject.team.forEach(member => {
-            const label = document.createElement('label');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = member;
-            label.append(checkbox, document.createTextNode(member));
-            assigneesList.appendChild(label);
-        });
-        taskModal.style.display = 'block';
-    });
-
-    document.getElementById('taskForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('taskName').value.trim();
-        if (!name) return;
-
-        const description = document.getElementById('taskDescription').value.trim();
-        const deadline = document.getElementById('taskDeadline').value;
-
-        const checked = document.querySelectorAll('#assigneesList input[type="checkbox"]:checked');
-        const assignees = Array.from(checked).map(cb => cb.value);
-
-        if (deadline) {
-            const d = new Date(deadline);
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            if (d < today) {
-                alert('Дедлайн не может быть в прошлом!');
-                return;
-            }
-        }
-
-        const topLevelIds = subject.tasks
-            .map(t => t.id)
-            .filter(id => /^\d+$/.test(id))
-            .map(id => parseInt(id, 10))
-            .filter(n => !isNaN(n));
-
-        const nextId = topLevelIds.length ? Math.max(...topLevelIds) + 1 : 1;
-
-        const topLevelTasks = subject.tasks.filter(t => /^\d+$/.test(t.id));
-        const color = getRandomColor(topLevelTasks);
-
-        const newTask = {
-            id: String(nextId),
-            name: name,
-            status: 'created',
-            color: color,
-            description: description,
-            deadline: deadline,
-            assignees: assignees
-        };
-
-        subject.tasks.push(newTask);
-        const storedSubjects = JSON.parse(localStorage.getItem('subjects')) || [];
-        const updated = storedSubjects.map(s => s.id === subjectId ? { ...s, tasks: subject.tasks } : s);
-        localStorage.setItem('subjects', JSON.stringify(updated));
-
-        subjectsData[subjectId] = {
-            ...subject,
-            tasks: [...subject.tasks]
-        };
-
-        const el = document.createElement('div');
-        el.className = `task ${color}`;
-        el.draggable = true;
-        el.ondragstart = dragStart;
-        el.textContent = `${nextId}. ${name}`;
-        el.dataset.taskId = String(nextId);
-        el.dataset.status = 'created';
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.location.href = `task.html?subjectId=${subjectId}&taskId=${nextId}`;
-        });
-        createdColumn.appendChild(el);
-
-        taskModal.style.display = 'none';
-        document.getElementById('taskForm').reset();
-    });
-
-    editSubjectForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const newName = editSubjectName.value.trim();
-        const newDescription = editSubjectDescription.value.trim();
-        const newResult = editSubjectResult.value.trim();
-        const newDeadline = editSubjectDeadline.value;
-
-        if (!newName || !newResult) {
-            alert('Заполните название и результат!');
+    showInviteBtn?.addEventListener('click', () => {
+        if (!currentSubject?.code) {
+            alert('Код предмета не загружен. Обновите страницу.');
             return;
         }
-
-        if (newDeadline) {
-            const d = new Date(newDeadline);
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            if (d < today) {
-                alert('Дедлайн не может быть в прошлом!');
-                return;
-            }
-        }
-
-        const storedSubjects = JSON.parse(localStorage.getItem('subjects')) || [];
-        const updated = storedSubjects.map(s =>
-            s.id === subjectId ? { ...s, name: newName, description: newDescription, result: newResult, deadline: newDeadline } : s
-        );
-        localStorage.setItem('subjects', JSON.stringify(updated));
-
-        subjectsData[subjectId] = {
-            name: newName,
-            description: newDescription,
-            result: newResult,
-            deadline: newDeadline,
-            tasks: subject.tasks,
-            team: subject.team
-        };
-
-        nameSubjectButton.textContent = newName;
-        editSubjectModal.style.display = 'none';
+        inviteCodeInput.value = currentSubject.code;
+        inviteCodeModal.style.display = 'block';
     });
 
-    deleteSubjectBtn.addEventListener('click', () => {
-        if (confirm('Удалить предмет?')) {
-            const storedSubjects = JSON.parse(localStorage.getItem('subjects')) || [];
-            const filtered = storedSubjects.filter(s => String(s.id) !== subjectId);
-            localStorage.setItem('subjects', JSON.stringify(filtered));
-            delete subjectsData[subjectId];
-            window.location.href = '../MenuSubjects/index.html';
-        }
+    showDeleteBtn?.addEventListener('click', () => {
+    deleteCheckboxList.innerHTML = '';
+    currentTeam.forEach(member => {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = member.id;
+        label.style.display = 'block';
+        label.style.margin = '6px 0';
+        label.append(checkbox, ' ', document.createTextNode(member.name));
+        deleteCheckboxList.appendChild(label);
+    });
+    deleteStudentsModal.style.display = 'block';
     });
 
-    renderSubjectData();
+    confirmDeleteBtn?.addEventListener('click', async () => {
+    const checked = deleteCheckboxList.querySelectorAll('input[type="checkbox"]:checked');
+    const studentIds = Array.from(checked).map(cb => cb.value);
+
+    if (!confirm(`Удалить ${studentIds.length} студент(ов)?`)) return;
+
+    try {
+        for (const studentId of studentIds) {
+            const res = await fetch(`${API_BASE}/team/student/${studentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'SubjectId': subjectId
+                }
+            });
+            if (!res.ok) throw new Error(`Ошибка при удалении ${studentId}`);
+        }
+        alert('Студенты удалены.');
+        deleteStudentsModal.style.display = 'none';
+        await loadSubjectAndTasks();
+    } catch (err) {
+        console.error(err);
+        alert('Не удалось удалить студентов.');
+    }
+    });
+
+    closeInviteModal?.addEventListener('click', () => {
+    inviteCodeModal.style.display = 'none';
+    });
+
+    closeDeleteModal?.addEventListener('click', () => {
+    deleteStudentsModal.style.display = 'none';
+    });
+
+    loadSubjectAndTasks();
 });
