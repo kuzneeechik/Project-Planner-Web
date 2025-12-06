@@ -101,7 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTasks.forEach(task => {
       const displayStatus = statusMap[task.status] || 'created';
       const taskElement = document.createElement('div');
-      taskElement.className = `task ${getColorById(task.id)}`;
+      const rootNumber = task.number.split('.')[0];
+      taskElement.className = `task ${getColorById(rootNumber)}`;
       taskElement.draggable = true;
       taskElement.dataset.taskId = task.id;
       taskElement.dataset.status = displayStatus;
@@ -162,13 +163,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+          const statusMapToBackend = {
+            'created': 'Created',
+            'process': 'InProcess',
+            'done': 'Done'
+          };
+          const backendStatus = statusMapToBackend[newStatus];
+
           const res = await fetch(`${API_BASE}/task/status/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ status: backendStatus })
           });
 
           if (!res.ok) throw new Error('Не удалось обновить статус');
