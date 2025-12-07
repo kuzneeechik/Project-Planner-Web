@@ -470,7 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error(`Ошибка при удалении ${studentId}`);
         }
-        alert('Студенты удалены.');
         deleteStudentsModal.style.display = 'none';
         await loadSubjectAndTasks();
     } catch (err) {

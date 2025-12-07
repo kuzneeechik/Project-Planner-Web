@@ -202,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (res.ok) {
-          alert('Вы присоединились к предмету!');
           entryCodeModal.style.display = 'none';
           document.getElementById('entryCode').value = '';
           loadSubjects();

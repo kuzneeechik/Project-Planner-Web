@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (res.ok) {
-        alert('Регистрация успешна! Теперь войдите.');
         showForm('login');
       } else if (res.status === 400) {
         showError('Пользователь с таким email уже существует.');
