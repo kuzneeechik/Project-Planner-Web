@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     deleteSubjectBtn.addEventListener('click', async () => {
-        if (!confirm('Удалить предмет и все задачи? Это действие нельзя отменить.')) return;
+        if (!confirm) return;
 
         try {
             const res = await fetch(`${API_BASE}/subject/delete/${subjectId}`, {
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const checked = deleteCheckboxList.querySelectorAll('input[type="checkbox"]:checked');
     const studentIds = Array.from(checked).map(cb => cb.value);
 
-    if (!confirm(`Удалить ${studentIds.length} студент(ов)?`)) return;
+    if (!confirm) return;
 
     try {
         for (const studentId of studentIds) {

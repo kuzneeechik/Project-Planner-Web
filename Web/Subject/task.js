@@ -140,8 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	document.getElementById('editTaskForm').addEventListener('submit', async (e) => {
 		e.preventDefault();
+		const newTaskName = document.getElementById('editTaskName').value.trim();
 		const newDescription = document.getElementById('editDescription').value.trim();
 		const newDeadline = document.getElementById('editDeadline').value;
+
+		if (!newTaskName) {
+			alert('Название задачи не может быть пустым');
+			return;
+		}
 
 		if (newDeadline) {
 			const d = new Date(newDeadline);
@@ -167,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		try {
 			const updateData = {
-				name: currentTask.name,
+				name: newTaskName,
 				description: newDescription,
 				deadline: deadlineToSend,
 				responsibleStudents
@@ -188,10 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
 				throw new Error('Не удалось обновить задачу');
 			}
 
+			currentTask.name = newTaskName;
 			currentTask.description = newDescription;
 			currentTask.deadline = newDeadline;
 			currentTask.responsibleStudents = newAssignees;
 
+			taskTitle.textContent = `${currentTask.number}. ${currentTask.name}`;
 			taskDescription.textContent = newDescription || '—';
 			headerDeadlineDate.textContent = newDeadline
 				? new Date(newDeadline).toLocaleDateString('ru-RU')
@@ -320,8 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				throw new Error('Не удалось создать подзадачу');
 			}
 
-			subtaskModal.style.display = 'none';
-			document.getElementById('subtaskForm').reset();
+			window.location.href = `subject.html?id=${subjectId}`;
 		} catch (err) {
 			console.error(err);
 			alert('Ошибка: ' + err.message);

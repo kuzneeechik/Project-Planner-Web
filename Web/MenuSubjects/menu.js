@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   logoutButton.addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите выйти?')) {
+    if (confirm) {
       localStorage.removeItem('authToken');
       window.location.href = '../Login/login.html';
     }
