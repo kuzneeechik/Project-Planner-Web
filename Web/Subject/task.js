@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	deleteTaskBtn.addEventListener('click', async () => {
-		if (!confirm(`Вы уверены, что хотите удалить задачу "${currentTask.name}" и все её подзадачи?`)) {
+		if (!confirm) {
 			return;
 		}
 

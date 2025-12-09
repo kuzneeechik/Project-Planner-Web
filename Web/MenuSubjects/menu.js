@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeEntryCodeModal = document.getElementById('closeEntryCodeModal');
   const entryCodeForm = document.getElementById('entryCodeForm');
 
+  const editSubjectModal = document.getElementById('editSubjectModal');
+  const closeEditSubjectModal = document.getElementById('closeEditSubjectModal');
+  const editSubjectForm = document.getElementById('editSubjectForm');
+  const editModalTitle = document.getElementById('editModalTitle');
+  const editSubjectName = document.getElementById('editSubjectName');
+  const editSubjectDescription = document.getElementById('editSubjectDescription');
+  const editSubjectResult = document.getElementById('editSubjectResult');
+  const editSubjectDeadline = document.getElementById('editSubjectDeadline');
+  const deleteSubjectBtn = document.getElementById('deleteSubjectBtn');
+
+  let subjectId = null;
+
   function formatDate(dateString) {
     if (!dateString) return '—';
     const date = new Date(dateString);
@@ -67,15 +79,54 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="subject-result">Результат: ${subject.result || '—'}</div>
           </div>
           <div class="subject-deadline">Дедлайн: ${formatDate(subject.deadline)}</div>
+          <button class="menu-dots" data-subject-id="${subject.id}">⋯</button>
         `;
+
         card.addEventListener('click', () => {
           window.location.href = `../Subject/subject.html?id=${subject.id}`;
         });
+
+        const menuDots = card.querySelector('.menu-dots');
+        if (menuDots) {
+          menuDots.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditModal(subject.id);
+          });
+        }
+
         container.appendChild(card);
       });
     } catch (err) {
       console.error('Ошибка загрузки:', err);
       alert('Не удалось загрузить предметы. Проверьте подключение.');
+    }
+  }
+
+  async function openEditModal(clickedSubjectId) {
+    try {
+      const res = await fetch(`${API_BASE}/subject/${clickedSubjectId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!res.ok) throw new Error('Не удалось загрузить предмет');
+      
+      const subjectData = await res.json();
+      
+      subjectId = clickedSubjectId;
+      
+      editModalTitle.textContent = subjectData.name || 'Без названия';
+      editSubjectName.value = subjectData.name || '';
+      editSubjectResult.value = subjectData.result || '';
+      editSubjectDescription.value = subjectData.resultDescription || '';
+      editSubjectDeadline.value = subjectData.resultDeadline
+        ? new Date(subjectData.resultDeadline).toISOString().split('T')[0]
+        : '';
+
+      editSubjectModal.style.display = 'block';
+      
+    } catch (err) {
+      console.error('Ошибка в openEditModal:', err);
+      alert('Не удалось открыть редактирование предмета: ' + err.message);
     }
   }
 
@@ -105,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === actionMenuModal) actionMenuModal.style.display = 'none';
     if (e.target === modal) modal.style.display = 'none';
     if (e.target === entryCodeModal) entryCodeModal.style.display = 'none';
+    if (e.target === editSubjectModal) editSubjectModal.style.display = 'none';
   });
 
   // создание
@@ -220,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileButton = document.querySelector('.profile-button');
   const profileModal = document.getElementById('profileModal');
   const profileName = document.getElementById('profileName');
+  const profileP = document.getElementById('profileP');
   const logoutButton = document.getElementById('logoutButton');
 
   async function loadProfile() {
@@ -234,12 +287,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         const profile = await res.json();
         profileName.textContent = profile.name || '—';
+        profileP.textContent = profile.email || '—';
       } else {
-        profileName.textContent = 'Не удалось загрузить';
+        profileName.textContent = '—';
+        profileP.textContent = 'Не удалось загрузить';
       }
     } catch (err) {
       console.error('Ошибка загрузки профиля:', err);
       profileName.textContent = 'Ошибка подключения';
+      profileP.textContent = 'Ошибка подключения';
     }
   }
 
@@ -265,5 +321,108 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 300); 
     });
   }
+
+  if (closeEditSubjectModal) {
+    closeEditSubjectModal.addEventListener('click', () => {
+      editSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (editSubjectForm) {
+    editSubjectForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!subjectId) {
+        alert('Ошибка: ID предмета не найден.');
+        return;
+      }
+      
+      const name = editSubjectName.value.trim();
+      const result = editSubjectResult.value.trim();
+      const description = editSubjectDescription.value.trim();
+      const deadlineInput = editSubjectDeadline.value;
+
+      if (!name || !result) {
+        alert('Заполните название и результат!');
+        return;
+      }
+
+      let resultDeadline = null;
+      if (deadlineInput) {
+        const localDate = new Date(deadlineInput);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selected = new Date(localDate);
+        selected.setHours(0, 0, 0, 0);
+        if (selected < today) {
+          alert('Дедлайн не может быть в прошлом.');
+          return;
+        }
+        resultDeadline = new Date(Date.UTC(
+          localDate.getFullYear(),
+          localDate.getMonth(),
+          localDate.getDate()
+        )).toISOString();
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/subject/update/${subjectId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            result,
+            resultDescription: description,
+            resultDeadline
+          })
+        });
+
+        if (res.ok) {
+          editSubjectModal.style.display = 'none';
+          loadSubjects();
+        } else {
+          throw new Error('Не удалось обновить предмет');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при сохранении: ' + err.message);
+      }
+    });
+  }
+
+  if (deleteSubjectBtn) {
+    deleteSubjectBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!subjectId) {
+        alert('Ошибка: ID предмета не найден.');
+        return;
+      }
+      
+      if (!confirm) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/subject/delete/${subjectId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          editSubjectModal.style.display = 'none';
+          subjectId = null;
+          loadSubjects();
+        } else {
+          throw new Error('Не удалось удалить предмет');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при удалении: ' + err.message);
+      }
+    });
+  }
+  
   loadSubjects();
 });

@@ -266,3 +266,133 @@ input[type="date"] {
   cursor: pointer;
   font-size: 14px;
 }
+
+.subject-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+}
+
+.menu-dots {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+}
+
+.subject-modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 350px;
+    max-width: 90%;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.subject-modal .modal-content .close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.subject-modal .modal-content .close:hover {
+    color: #333;
+}
+
+.subject-modal .modal-content h2 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+}
+
+.subject-modal .modal-content label {
+    display: block;
+    margin: 12px 0 4px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.subject-modal .modal-content input,
+.subject-modal .modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.subject-modal .modal-content textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.edit-modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.edit-modal-buttons button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    width: 48%;
+}
+
+#deleteSubjectBtn {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+#editSubjectForm button[type="submit"] {
+    background-color: #333;
+    color: white;
+}
+
+.subject-modal .modal-content {
+  pointer-events: none; 
+}
+
+.subject-modal .modal-content * {
+  pointer-events: auto; 
+}
+
+

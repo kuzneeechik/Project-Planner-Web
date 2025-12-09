@@ -243,7 +243,10 @@ header {
 .task-modal .checkbox-list input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    margin-right: 6px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin: 0;
+    padding: 0;
 }
 
 .subject-modal .modal-content {
@@ -501,7 +504,10 @@ header {
 #deleteStudentsModal .checkbox-list input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  margin-right: 6px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0;
 }
 
 .team-modal-button {

@@ -51,7 +51,8 @@
         <div class="profile-modal-content">
             <h3>Профиль</h3>
             <span class="close" id="closeProfileModal">&times;</span>
-            <p><strong>ФИО:</strong> <span id="profileName">—</span></p>
+            <p><strong>Имя:</strong> <span id="profileName">—</span></p>
+            <p><strong>Почта:</strong> <span id="profileP">—</span></p>
             <button id="logoutButton" class="logout-btn">Выйти</button>
         </div>
     </div>
@@ -67,6 +68,32 @@
             </form>
         </div>
     </div>
+
+    <div id="editSubjectModal" class="modal-overlay subject-modal">
+        <div class="modal-content">
+            <span class="close" id="closeEditSubjectModal">&times;</span>
+            <h1 id="editModalTitle" style="text-align: center;">Редактировать предмет</h1>
+            <form id="editSubjectForm">
+                <label for="editSubjectName">Название предмета:</label>
+                <input type="text" id="editSubjectName" required>
+
+                <label for="editSubjectResult">Результат:</label>
+                <textarea id="editSubjectResult" rows="1" required></textarea>
+
+                <label for="editSubjectDescription">Описание:</label>
+                <textarea id="editSubjectDescription" rows="2"></textarea>
+
+                <label for="editSubjectDeadline">Дедлайн:</label>
+                <input type="date" id="editSubjectDeadline">
+
+                <div class="edit-modal-buttons">
+                    <button type="button" id="deleteSubjectBtn">Удалить</button>
+                    <button type="submit">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script src="menu.js"></script>
 </body>
 </html>
