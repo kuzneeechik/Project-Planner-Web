@@ -126,5 +126,85 @@
             <button id="closeDeleteModal" class="team-modal-button">отмена</button>
         </div>
     </div>
+
+    <div id="viewTaskModal" class="modal-overlay task-modal">
+        <div class="modal-content task-modal-content">
+            <div class="task-modal-header">
+                <h2 id="viewTaskTitle">Загрузка...</h2>
+                <span class="close" id="closeViewTaskModal">&times;</span>
+            </div>
+
+            <div class="task-modal-body">
+                <div class="task-info">
+                    <div class="field">
+                        <strong>Описание:</strong>
+                        <p id="viewTaskDescription">—</p>
+                    </div>
+                    <div class="field">
+                        <strong>Дедлайн:</strong>
+                        <p id="viewTaskDeadline">—</p>
+                    </div>
+                    <div class="field">
+                        <strong>Ответственные:</strong>
+                        <div id="viewTaskAssignees">—</div>
+                    </div>
+                    <div class="field" id="viewParentTaskContainer" style="display: none;">
+                        <strong>Главная задача:</strong>
+                        <p id="viewParentTask">—</p>
+                    </div>
+                </div>
+                
+                <div class="task-actions">
+                    <button id="viewCreateSubtaskBtn" class="action-button">Создать подзадачу</button>
+                    <button id="viewEditTaskBtn" class="action-button">Редактировать</button>
+                    <button id="viewDeleteTaskBtn" class="action-button delete-btn">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editTaskModal" class="modal-overlay task-modal">
+        <div class="modal-content">
+            <span class="close" id="closeEditTaskModal">&times;</span>
+            <h2>Редактировать задачу</h2>
+            <form id="editTaskForm">
+                <label>Название:</label>
+                <input type="text" id="editTaskName" placeholder="Название задачи" required>
+                
+                <label>Описание:</label>
+                <textarea id="editDescription" rows="3" placeholder="Описание задачи"></textarea>
+
+                <label>Дедлайн:</label>
+                <input type="date" id="editDeadline">
+
+                <label>Ответственные:</label>
+                <div id="editAssigneesList" class="checkbox-list"></div>
+
+                <button type="submit" class="create-button">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="subtaskModal" class="modal-overlay task-modal">
+        <div class="modal-content">
+            <span class="close" id="closeSubtaskModal">&times;</span>
+            <h2>Новая подзадача</h2>
+            <form id="subtaskForm">
+                <label>Название:</label>
+                <input type="text" id="subtaskName" placeholder="Название подзадачи" required>
+
+                <label>Описание:</label>
+                <textarea id="subtaskDescription" rows="2" placeholder="Описание"></textarea>
+
+                <label>Дедлайн:</label>
+                <input type="date" id="subtaskDeadline">
+
+                <label>Ответственные:</label>
+                <div id="subtaskAssigneesList" class="checkbox-list"></div>
+
+                <button type="submit" class="create-button">Создать подзадачу</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
