@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSubject = null;
     let currentTasks = [];
     let currentTeam = [];
+    let currentUserId = null;
 
     function getColorById(taskId) {
       const colors = [
@@ -72,6 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (!teamRes.ok) throw new Error('Не удалось загрузить команду');
         currentTeam = await teamRes.json();
+
+        const profileRes = await fetch(`${API_BASE}/student/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          currentUserId = profile.id; 
+        } else {
+          console.warn('Не удалось загрузить профиль пользователя');
+        }
 
         renderSubjectData();
       } catch (err) {
@@ -441,6 +452,9 @@ document.addEventListener('DOMContentLoaded', () => {
     showDeleteBtn?.addEventListener('click', () => {
     deleteCheckboxList.innerHTML = '';
     currentTeam.forEach(member => {
+         if (member.id === currentUserId) {
+            return;
+         }
         const label = document.createElement('label');
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -486,5 +500,27 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteStudentsModal.style.display = 'none';
     });
 
+    const exitSubjectBtn = document.getElementById('exitSubjectBtn');
+
+    exitSubjectBtn?.addEventListener('click', async () => {
+      if (!confirm) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/team/exit/${subjectId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        window.location.href = '../MenuSubjects/index.html';
+
+      } catch (err) {
+        console.error('Ошибка при выходе:', err);
+        alert('Ошибка: ' + err.message);
+      }
+    });
     loadSubjectAndTasks();
 });

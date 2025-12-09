@@ -529,3 +529,22 @@ header {
 .team-modal-button:hover {
   background-color: #555;
 }
+
+.buttonExit {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #333; 
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.buttonExit:hover {
+  background-color: #5a6268;
+}
