@@ -244,6 +244,9 @@ header {
 .checkbox-list input[type="checkbox"] {
     width: 16px;
     height: 16px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 .task-modal .modal-content {
@@ -376,7 +379,6 @@ header {
     background: #dedede;
     padding: 20px;
     border-radius: 8px;
-    text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: 1px solid #ddd;
 }
@@ -393,9 +395,25 @@ header {
 }
 
 #deleteStudentsModal .checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
     max-height: 200px;
     overflow-y: auto;
     margin: 10px 0;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    font-size: 13px;
+}
+#deleteStudentsModal .checkbox-list input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    vertical-align: middle; 
+    line-height: 1;       
 }
 
 .team-modal-button {

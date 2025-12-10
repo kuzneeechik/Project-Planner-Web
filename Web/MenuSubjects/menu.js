@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="subject-result">Результат: ${subject.result || '—'}</div>
           </div>
           <div class="subject-deadline">Дедлайн: ${formatDate(subject.deadline)}</div>
-          <button class="menu-dots" data-subject-id="${subject.id}">⋯</button>
+          <button class="menu-dots" data-subject-id="${subject.id}">⋮</button>
         `;
 
         card.addEventListener('click', () => {
