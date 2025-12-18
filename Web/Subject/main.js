@@ -106,6 +106,34 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTeam();
     }
 
+    function sortColumn(columnElement) {
+        const tasks = Array.from(columnElement.querySelectorAll('.task'));
+        
+        tasks.sort((a, b) => {
+            const taskA = currentTasks.find(t => t.id === a.dataset.taskId);
+            const taskB = currentTasks.find(t => t.id === b.dataset.taskId);
+            if (!taskA || !taskB) return 0;
+            return compareTaskNumbers(taskA, taskB);
+        });
+
+        columnElement.innerHTML = '';
+        tasks.forEach(task => columnElement.appendChild(task));
+    }
+    
+    function compareTaskNumbers(a, b) {
+        const aParts = a.number.split('.').map(Number);
+        const bParts = b.number.split('.').map(Number);    
+        const len = Math.max(aParts.length, bParts.length);
+        for (let i = 0; i < len; i++) {
+            const aNum = i < aParts.length ? aParts[i] : 0;
+            const bNum = i < bParts.length ? bParts[i] : 0;
+            if (aNum !== bNum) {
+                return aNum - bNum;
+            }
+        }
+        return 0;
+    }
+
     function renderTasks() {
         createdColumn.innerHTML = '';
         processColumn.innerHTML = '';
@@ -117,7 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'Done': 'done'
         };
 
-        currentTasks.forEach(task => {
+
+        const sortedTasks = [...currentTasks].sort(compareTaskNumbers);
+
+        sortedTasks.forEach(task => {
             const displayStatus = statusMap[task.status] || 'created';
             const taskElement = document.createElement('div');
             const rootNumber = task.number.split('.')[0];
@@ -209,11 +240,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!res.ok) throw new Error('Не удалось обновить статус');
 
+                const task = currentTasks.find(t => t.id === taskId);
+                if (task) {
+                    task.status = backendStatus;
+                }
+
                 draggedTask.dataset.status = newStatus;
                 body.appendChild(draggedTask);
 
-                const task = currentTasks.find(t => t.id === taskId);
-                if (task) task.status = newStatus;
+                sortColumn(body);
 
             } catch (err) {
                 console.error(err);
