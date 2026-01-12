@@ -187,7 +187,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|Opera Mini/i.test(navigator.userAgent);
     let draggedTask = null;
+    let touchOffsetY = 0;
+
+    async function moveTaskToColumn(taskElement, newStatus, targetColumn) {
+        const taskId = taskElement.dataset.taskId;
+        if (taskElement.dataset.status === newStatus) return;
+
+        const statusMapToBackend = {
+            'created': 'Created',
+            'process': 'InProcess',
+            'done': 'Done'
+        };
+        const backendStatus = statusMapToBackend[newStatus];
+
+        try {
+            const res = await fetch(`${API_BASE}/task/status/${taskId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: backendStatus })
+            });
+
+            if (!res.ok) throw new Error('Не удалось обновить статус');
+
+            const task = currentTasks.find(t => t.id === taskId);
+            if (task) task.status = backendStatus;
+
+            taskElement.dataset.status = newStatus;
+            targetColumn.appendChild(taskElement);
+            sortColumn(targetColumn);
+        } catch (err) {
+            console.error(err);
+            alert('Не удалось изменить статус задачи.');
+        }
+    }
 
     function dragStart(e) {
         draggedTask = e.target;
@@ -195,69 +232,107 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.classList.add('dragging');
     }
 
-    document.querySelectorAll('.column-body').forEach(body => {
-        body.addEventListener('dragover', e => e.preventDefault());
-        
-        body.addEventListener('dragenter', e => {
-            e.preventDefault();
-            body.classList.add('drag-over');
-        });
-        
-        body.addEventListener('dragleave', () => {
-            body.classList.remove('drag-over');
-        });
-        
-        body.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            body.classList.remove('drag-over');
-            
-            if (!draggedTask) return;
+    function handleTouchStart(e) {
+        draggedTask = e.currentTarget;
+        const rect = draggedTask.getBoundingClientRect();
+        touchOffsetY = e.touches[0].clientY - rect.top;
+        draggedTask.style.opacity = '0.6';
+        draggedTask.style.transform = 'scale(1.02)';
+        e.preventDefault();
+    }
 
-            const newStatus = body === createdColumn ? 'created' : body === processColumn ? 'process' : 'done';
-            const taskId = draggedTask.dataset.taskId;
+    function handleTouchMove(e) {
+        if (!draggedTask) return;
+        e.preventDefault();
+        const y = e.touches[0].clientY - touchOffsetY;
+        Object.assign(draggedTask.style, {
+            position: 'fixed',
+            left: '0',
+            right: '0',
+            zIndex: '1000',
+            pointerEvents: 'none',
+            margin: '0',
+            transform: `translateY(${y}px)`
+        });
+    }
 
-            if (draggedTask.dataset.status === newStatus) {
+    function handleTouchEnd(e) {
+        if (!draggedTask) return;
+
+        Object.assign(draggedTask.style, {
+            position: '',
+            left: '',
+            right: '',
+            zIndex: '',
+            pointerEvents: '',
+            transform: '',
+            opacity: ''
+        });
+
+        const clientY = e.changedTouches[0].clientY;
+        const columns = [
+            { el: createdColumn, status: 'created' },
+            { el: processColumn, status: 'process' },
+            { el: doneColumn, status: 'done' }
+        ];
+
+        const dropTarget = columns.find(col => {
+            const rect = col.el.getBoundingClientRect();
+            return clientY >= rect.top && clientY <= rect.bottom;
+        });
+
+        if (dropTarget) {
+            moveTaskToColumn(draggedTask, dropTarget.status, dropTarget.el);
+        }
+
+        draggedTask = null;
+    }
+
+    const originalRenderTasks = renderTasks;
+    renderTasks = function() {
+        originalRenderTasks();
+
+        document.querySelectorAll('.task').forEach(task => {
+            task.draggable = false;
+            task.removeEventListener('touchstart', handleTouchStart);
+            task.removeEventListener('touchmove', handleTouchMove);
+            task.removeEventListener('touchend', handleTouchEnd);
+        });
+
+        if (isMobile) {
+            document.querySelectorAll('.task').forEach(task => {
+                task.addEventListener('touchstart', handleTouchStart, { passive: false });
+                task.addEventListener('touchmove', handleTouchMove, { passive: false });
+                task.addEventListener('touchend', handleTouchEnd, { passive: false });
+            });
+        } else {
+            document.querySelectorAll('.task').forEach(task => {
+                task.draggable = true;
+                task.ondragstart = dragStart;
+            });
+        }
+
+        document.querySelectorAll('.column-body').forEach(body => {
+            body.addEventListener('dragover', e => e.preventDefault());
+            body.addEventListener('dragenter', e => {
+                e.preventDefault();
+                body.classList.add('drag-over');
+            });
+            body.addEventListener('dragleave', () => {
+                body.classList.remove('drag-over');
+            });
+            body.addEventListener('drop', (e) => {
+                e.preventDefault();
+                body.classList.remove('drag-over');
+                if (!draggedTask) return;
+                const newStatus = 
+                    body === createdColumn ? 'created' : 
+                    body === processColumn ? 'process' : 'done';
+                moveTaskToColumn(draggedTask, newStatus, body);
                 draggedTask = null;
-                return;
-            }
-
-            try {
-                const statusMapToBackend = {
-                    'created': 'Created',
-                    'process': 'InProcess',
-                    'done': 'Done'
-                };
-                const backendStatus = statusMapToBackend[newStatus];
-
-                const res = await fetch(`${API_BASE}/task/status/${taskId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: backendStatus })
-                });
-
-                if (!res.ok) throw new Error('Не удалось обновить статус');
-
-                const task = currentTasks.find(t => t.id === taskId);
-                if (task) {
-                    task.status = backendStatus;
-                }
-
-                draggedTask.dataset.status = newStatus;
-                body.appendChild(draggedTask);
-
-                sortColumn(body);
-
-            } catch (err) {
-                console.error(err);
-                alert('Не удалось изменить статус задачи.');
-            }
-
-            draggedTask = null;
+            });
         });
-    });
+    };
 
     backButton.addEventListener('click', () => {
         window.location.href = '../MenuSubjects/index.html';
