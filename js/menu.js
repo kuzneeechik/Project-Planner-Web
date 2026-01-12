@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!token) {
     alert('Пожалуйста, войдите в систему.');
-    window.location.href = '../Login/login.html';
+    window.location.href = '../index.html';
     return;
   }
 
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.status === 401) {
         localStorage.removeItem('authToken');
         alert('Сессия истекла. Пожалуйста, войдите снова.');
-        window.location.href = '../Login/login.html';
+        window.location.href = '../menu.html';
         return;
       }
 
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         card.addEventListener('click', () => {
-          window.location.href = `../Subject/subject.html?id=${subject.id}`;
+          window.location.href = `../subject.html?id=${subject.id}`;
         });
 
         const menuDots = card.querySelector('.menu-dots');
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
   logoutButton.addEventListener('click', () => {
     if (confirm) {
       localStorage.removeItem('authToken');
-      window.location.href = '../Login/login.html';
+      window.location.href = '../index.html';
     }
   });
 

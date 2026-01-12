@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.ok) {
         localStorage.setItem('authToken', data.accessToken);
-        window.location.href = '../MenuSubjects/index.html';
+        window.location.href = '../menu.html';
       } else {
         const errorMsg = data.message || 'Неверный email или пароль.';
         showError(errorMsg);

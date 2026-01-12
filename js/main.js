@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!token) {
         alert('Пожалуйста, войдите в систему.');
-        window.location.href = '../Login/login.html';
+        window.location.href = '../index.html';
         return;
     }
 
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (subjectRes.status === 401) {
                 localStorage.removeItem('authToken');
                 alert('Сессия истекла. Пожалуйста, войдите снова.');
-                window.location.href = '../Login/login.html';
+                window.location.href = '../index.html';
                 return;
             }
             
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Ошибка загрузки:', err);
             alert('Не удалось загрузить данные предмета.');
-            window.location.href = '../MenuSubjects/index.html';
+            window.location.href = '../menu.html';
         }
     }
 
@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     backButton.addEventListener('click', () => {
-        window.location.href = '../MenuSubjects/index.html';
+        window.location.href = '../menu.html';
     });
 
     teamButton.addEventListener('click', () => {
@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok) throw new Error('Не удалось удалить предмет');
 
-            window.location.href = '../MenuSubjects/index.html';
+            window.location.href = '../menu.html';
 
         } catch (err) {
             console.error(err);
@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!subjectId) {
         alert('Не указан ID предмета');
-        window.location.href = '../MenuSubjects/index.html';
+        window.location.href = '../menu.html';
         return;
     }
 
@@ -682,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Не удалось выйти из предмета');
             }
 
-            window.location.href = '../MenuSubjects/index.html';
+            window.location.href = '../menu.html';
 
         } catch (err) {
             console.error('Ошибка при выходе:', err);
