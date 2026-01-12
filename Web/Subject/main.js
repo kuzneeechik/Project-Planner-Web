@@ -459,8 +459,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!res.ok) {
-                const errorText = await res.text().catch(() => 'Неизвестная ошибка');
-                throw new Error(`Не удалось создать задачу: ${errorText}`);
+                let errorMessage = 'Не удалось создать задачу.';
+                try {
+                    const errorJson = await res.json();
+                    if (res.status === 400 && errorJson.details === "Deadline is uncorrect") {
+                        errorMessage = 'Дедлайн задачи не может быть позже дедлайна проекта.';
+                    } else {
+                        errorMessage += ' ' + (errorJson.details || '');
+                    }
+                } catch {
+                }
+                throw new Error(errorMessage);
             }
 
             taskModal.style.display = 'none';
@@ -468,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadSubjectAndTasks();
         } catch (err) {
             console.error(err);
-            alert('Ошибка при создании задачи: ' + err.message);
+            alert(err.message);
         }
     });
 
@@ -861,15 +870,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const checked = document.querySelectorAll('#subtaskAssigneesList input[type="checkbox"]:checked');
         const assigneeIds = Array.from(checked).map(cb => cb.value);
 
-        const subtaskData = {
-            number,
-            name,
-            description,
-            deadline: deadlineInput ? new Date(deadlineInput).toISOString() : null,
-            responsibleStudents: assigneeIds
-        };
-
         try {
+            const subtaskData = {
+                number,
+                name,
+                description,
+                deadline: deadlineInput ? new Date(deadlineInput).toISOString() : null,
+                responsibleStudents: assigneeIds
+            };
+
             const res = await fetch(`${API_BASE}/task/add/${parentTaskId}`, {
                 method: 'POST',
                 headers: {
@@ -880,8 +889,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!res.ok) {
-                const errorText = await res.text().catch(() => 'Ошибка');
-                throw new Error(`Не удалось создать подзадачу: ${errorText}`);
+                let errorMessage = 'Не удалось создать подзадачу.';
+                try {
+                    const errorJson = await res.json();
+                    if (res.status === 400 && errorJson.details === "Deadline is uncorrect") {
+                        errorMessage = 'Дедлайн подзадачи не может быть позже дедлайна главной задачи.';
+                    } else {
+                        errorMessage += ' ' + (errorJson.details || '');
+                    }
+                } catch {
+                }
+                throw new Error(errorMessage);
             }
 
             document.getElementById('subtaskModal').style.display = 'none';
@@ -889,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadSubjectAndTasks();
         } catch (err) {
             console.error(err);
-            alert('Ошибка: ' + err.message);
+            alert(err.message);
         }
     });
 
@@ -956,15 +974,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!res.ok) {
-                const errorText = await res.text().catch(() => 'Ошибка сервера');
-                throw new Error(`Не удалось обновить задачу: ${errorText}`);
+                let errorMessage = 'Не удалось обновить задачу.';
+                try {
+                    const errorJson = await res.json();
+                    if (res.status === 400 && errorJson.details === "Deadline is uncorrect") {
+                        errorMessage = 'Дедлайн задачи не может быть позже дедлайна проекта.';
+                    } else {
+                        errorMessage += ' ' + (errorJson.details || '');
+                    }
+                } catch {
+                }
+                throw new Error(errorMessage);
             }
 
             document.getElementById('editTaskModal').style.display = 'none';
             await loadSubjectAndTasks();
         } catch (err) {
             console.error(err);
-            alert('Ошибка при обновлении задачи: ' + err.message);
+            alert(err.message);
         }
     });
 
