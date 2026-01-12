@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTeam = [];
     let currentUserId = null;
     let currentViewTask = null;
+    let currentFilter = { isMine: false, notAssigned: false };
 
     function getColorById(taskId) {
         const colors = [
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return colors[index];
     }
 
-    async function loadSubjectAndTasks() {
+    async function loadSubjectAndTasks(isMine = false, notAssigned = false) {
         try {
             const subjectRes = await fetch(`${API_BASE}/subject/${subjectId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -67,7 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!subjectRes.ok) throw new Error('Не удалось загрузить предмет');
             currentSubject = await subjectRes.json();
 
-            const tasksRes = await fetch(`${API_BASE}/task/tasks/${subjectId}`, {
+            const queryParams = new URLSearchParams({
+                isMine: isMine,
+                notAssigned: notAssigned
+            });
+            const tasksUrl = `${API_BASE}/task/tasks/${subjectId}?${queryParams}`;
+            const tasksRes = await fetch(tasksUrl, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -993,6 +999,25 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(err);
             alert(err.message);
         }
+    });
+
+    document.getElementById('filter-button')?.addEventListener('click', () => {
+        document.getElementById('filterModal').style.display = 'block';
+    });
+
+    document.getElementById('filterMine')?.addEventListener('click', () => {
+        document.getElementById('filterModal').style.display = 'none';
+        loadSubjectAndTasks(true, false);
+    });
+
+    document.getElementById('filterUnassigned')?.addEventListener('click', () => {
+        document.getElementById('filterModal').style.display = 'none';
+        loadSubjectAndTasks(false, true);
+    });
+
+    document.getElementById('filterAll')?.addEventListener('click', () => {
+        document.getElementById('filterModal').style.display = 'none';
+        loadSubjectAndTasks(false, false);
     });
 
     loadSubjectAndTasks();

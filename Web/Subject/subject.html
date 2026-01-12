@@ -47,6 +47,7 @@
     </section>
     
     <button id="add-button" class="add-button">+</button>
+    <button id="filter-button" class="filter-button">≔</button>
 
     <div id="teamModal" class="modal-overlay">
         <div class="sidebar-content">
@@ -204,6 +205,15 @@
 
                 <button type="submit" class="create-button">Создать подзадачу</button>
             </form>
+        </div>
+    </div>
+    <div id="filterModal" class="modal-overlay">
+        <div class="modal-content" style="width: 280px; text-align: center;">
+            <span class="close" id="closeSubtaskModal">&times;</span>
+            <h2>Фильтр задач</h2>
+            <button id="filterMine" class="create-button">Мои задачи</button>
+            <button id="filterUnassigned" class="create-button">Неназначенные</button>
+            <button id="filterAll" class="create-button">Все задачи</button>
         </div>
     </div>
 </body>

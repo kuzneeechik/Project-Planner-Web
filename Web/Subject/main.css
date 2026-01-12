@@ -123,6 +123,24 @@ header {
     justify-content: center;
 }
 
+.filter-button {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    border: none;
+    background-color: #333;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .modal-overlay {
     display: none;
     position: fixed;
