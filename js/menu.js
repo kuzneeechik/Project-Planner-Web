@@ -194,12 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let resultDeadline = null;
     if (deadlineInput) {
       const localDate = new Date(deadlineInput);
-      const utcDate = new Date(Date.UTC(
-        localDate.getFullYear(),
-        localDate.getMonth(),
-        localDate.getDate()
-      ));
-      resultDeadline = utcDate.toISOString();
+      localDate.setHours(23, 59, 59, 999);
+      resultDeadline = localDate.toISOString();
     }
 
     try {
@@ -357,11 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('Дедлайн не может быть в прошлом.');
           return;
         }
-        resultDeadline = new Date(Date.UTC(
-          localDate.getFullYear(),
-          localDate.getMonth(),
-          localDate.getDate()
-        )).toISOString();
+        localDate.setHours(23, 59, 59, 999);
+        resultDeadline = localDate.toISOString();
       }
 
       try {

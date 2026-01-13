@@ -35,6 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentViewTask = null;
     let currentFilter = { isMine: false, notAssigned: false };
 
+    function isAfter(dateA, dateB) {
+        const a = dateA instanceof Date ? dateA : new Date(dateA);
+        const b = dateB instanceof Date ? dateB : new Date(dateB);
+        return a > b;
+    }
+
     function getColorById(taskId) {
         const colors = [
             'pastel-blue', 'pastel-orange', 'pastel-pink', 'pastel-green',
@@ -419,6 +425,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Дедлайн не может быть в прошлом!');
                 return;
             }
+            if (deadlineInput && currentSubject.resultDeadline) {
+                const taskDeadlineDate = new Date(deadlineInput);
+                taskDeadlineDate.setHours(23, 59, 59, 999);
+
+                const subjectDeadline = new Date(currentSubject.resultDeadline);
+                if (isAfter(taskDeadlineDate, subjectDeadline)) {
+                    alert('Дедлайн задачи не может быть позже дедлайна проекта.');
+                    return;
+                }
+            }
         }
 
         const checked = document.querySelectorAll('#assigneesList input[type="checkbox"]:checked');
@@ -439,11 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let taskDeadline = null;
         if (deadlineInput) {
             const localDate = new Date(deadlineInput);
-            taskDeadline = new Date(Date.UTC(
-                localDate.getFullYear(),
-                localDate.getMonth(),
-                localDate.getDate()
-            )).toISOString();
+            localDate.setHours(23, 59, 59, 999); 
+            taskDeadline = localDate.toISOString(); 
         }
 
         try {
@@ -518,11 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            resultDeadline = new Date(Date.UTC(
-                localDate.getFullYear(),
-                localDate.getMonth(),
-                localDate.getDate()
-            )).toISOString();
+            localDate.setHours(23, 59, 59, 999);
+            resultDeadline = localDate.toISOString();
         }
 
         try {
@@ -871,17 +881,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Дедлайн не может быть в прошлом!');
                 return;
             }
+            if (deadlineInput && currentSubject.resultDeadline) {
+                const subtaskDeadlineDate = new Date(deadlineInput);
+                subtaskDeadlineDate.setHours(23, 59, 59, 999);
+
+                const subjectDeadline = new Date(currentSubject.resultDeadline);
+                if (isAfter(subtaskDeadlineDate, subjectDeadline)) {
+                    alert('Дедлайн подзадачи не может быть позже дедлайна главной задачи.');
+                    return;
+                }
+            }
         }
 
         const checked = document.querySelectorAll('#subtaskAssigneesList input[type="checkbox"]:checked');
         const assigneeIds = Array.from(checked).map(cb => cb.value);
 
         try {
+            let subtaskDeadline = null;
+            if (deadlineInput) {
+                const d = new Date(deadlineInput);
+                d.setHours(23, 59, 59, 999);
+                subtaskDeadline = d.toISOString();
+            }
+
             const subtaskData = {
                 number,
                 name,
                 description,
-                deadline: deadlineInput ? new Date(deadlineInput).toISOString() : null,
+                deadline: subtaskDeadline,
                 responsibleStudents: assigneeIds
             };
 
@@ -953,14 +980,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Дедлайн не может быть в прошлом!');
                 return;
             }
+            if (newDeadline && currentSubject.resultDeadline) {
+                const taskDeadlineDate = new Date(newDeadline);
+                taskDeadlineDate.setHours(23, 59, 59, 999);
+
+                const subjectDeadline = new Date(currentSubject.resultDeadline);
+                if (isAfter(taskDeadlineDate, subjectDeadline)) {
+                    alert('Дедлайн задачи не может быть позже дедлайна проекта.');
+                    return;
+                }
+            }
         }
 
         const checked = document.querySelectorAll('#editAssigneesList input[type="checkbox"]:checked');
         const newAssignees = Array.from(checked).map(cb => cb.value);
 
-        const deadlineToSend = newDeadline
-            ? new Date(new Date(newDeadline).setUTCHours(0, 0, 0, 0)).toISOString()
-            : null;
+        let deadlineToSend = null;
+        if (newDeadline) {
+            const d = new Date(newDeadline);
+            d.setHours(23, 59, 59, 999);
+            deadlineToSend = d.toISOString();
+        }
 
         try {
             const updateData = {
