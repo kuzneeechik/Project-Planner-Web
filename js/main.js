@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|Opera Mini/i.test(navigator.userAgent);
     let draggedTask = null;
     let touchOffsetY = 0;
+    let touchOffsetX = 0;
 
     async function moveTaskToColumn(taskElement, newStatus, targetColumn) {
         const taskId = taskElement.dataset.taskId;
@@ -247,41 +248,48 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchStart(e) {
         draggedTask = e.currentTarget;
         const rect = draggedTask.getBoundingClientRect();
-        touchOffsetY = e.touches[0].clientY - rect.top;
+        const touch = e.touches[0];
+        touchOffsetX = touch.clientX - rect.left;
+        touchOffsetY = touch.clientY - rect.top;
+        
         draggedTask.style.opacity = '0.6';
         draggedTask.style.transform = 'scale(1.02)';
+        draggedTask.style.zIndex = '1000';
+        draggedTask.style.position = 'fixed';
+        draggedTask.style.pointerEvents = 'none';
+        
         e.preventDefault();
     }
 
     function handleTouchMove(e) {
         if (!draggedTask) return;
         e.preventDefault();
-        const y = e.touches[0].clientY - touchOffsetY;
+        
+        const touch = e.touches[0];
+        const x = touch.clientX - touchOffsetX;
+        const y = touch.clientY - touchOffsetY;
+        
         Object.assign(draggedTask.style, {
-            position: 'fixed',
-            left: '0',
-            right: '0',
-            zIndex: '1000',
-            pointerEvents: 'none',
-            margin: '0',
-            transform: `translateY(${y}px)`
+            left: `${x}px`,
+            top: `${y}px`,
+            margin: '0'
         });
     }
 
     function handleTouchEnd(e) {
         if (!draggedTask) return;
-
+        
         Object.assign(draggedTask.style, {
             position: '',
+            top: '',
             left: '',
-            right: '',
             zIndex: '',
             pointerEvents: '',
             transform: '',
             opacity: ''
         });
 
-        const clientY = e.changedTouches[0].clientY;
+        const clientX = e.changedTouches[0].clientX;
         const columns = [
             { el: createdColumn, status: 'created' },
             { el: processColumn, status: 'process' },
@@ -290,10 +298,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const dropTarget = columns.find(col => {
             const rect = col.el.getBoundingClientRect();
-            return clientY >= rect.top && clientY <= rect.bottom;
+            return clientX >= rect.left && clientX <= rect.right;
         });
 
-        if (dropTarget) {
+        if (dropTarget && dropTarget.el !== draggedTask.parentElement) {
             moveTaskToColumn(draggedTask, dropTarget.status, dropTarget.el);
         }
 
